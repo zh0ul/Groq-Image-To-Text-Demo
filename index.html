@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" sizes="32x32" href='https://console.groq.com/favicon.ico'/>
+    <title>Image-to-Text with Groq</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff;
+        }
+
+        a {
+            color: #00f; /* Bright blue */
+        }
+
+        a:visited {
+            color: #ee69b4; /* Hot pink */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        input[type="text"], input[type="password"], select, input[type="file"], input[type="list"], textarea {
+            color: #ffffff;
+            background-color: #1f1f1f;
+            font-size: 16px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            display: block;
+            color: #ffffff;
+            background-color: #1f1f1f;
+            font-size: 16px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #333333;
+        }
+
+        button.pulsing {
+            animation: pulse 1s infinite;
+        }
+
+        .json-button {
+            display: block;
+            color: #ffffff;
+            background-color: #1f1f1f;
+            font-size: 12px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+            cursor: pointer;
+        }
+
+        .pulse-twice {
+            animation: pulse 1s 2;
+        }
+
+        @keyframes pulse {
+            0% {
+                background-color: #1f1f1f;
+            }
+            50% {
+                background-color: #28a745; /* Green */
+            }
+            100% {
+                background-color: #1f1f1f;
+            }
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .image-wrapper {
+            position: relative;
+        }
+
+        .image-wrapper img {
+            max-width: 200px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: red;
+            color: white;
+            border: none;
+            width: 50px; /* Set the desired width */
+            height: 50px; /* Set the same value for height */
+            border-radius: 80%; /* Make it a circle */
+            cursor: pointer;
+        }
+
+        .generation {
+            margin-bottom: 20px;
+            border: 1px solid #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #1f1f1f;
+            max-width: 430px;
+        }
+
+        .message {
+            margin-top: 10px;
+            color: #cccccc;
+        }
+
+        .message img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #badge {
+            width: 80px; /* Set the desired width */
+            height: auto; /* Maintain aspect ratio */
+            text-align: center;
+        }
+
+        #badge a img {
+            display: inline-block;
+        }
+
+        .sleek-divider {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, #ccc, #333, #ccc);
+            margin: 20px 0;
+        }
+
+        .popup-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="badge">
+            <a href="https://groq.com" target="_blank" rel="noopener noreferrer">
+                <img
+                    src="https://groq.com/wp-content/uploads/2024/03/PBG-mark1-color.svg"
+                    alt="Powered by Groq for fast inference."
+                />
+            </a>
+    </div>
+
+    <!--<h1>Image-to-Text with <a href="https://console.groq.com/docs/vision" target="_blank">Groq</a></h1>-->
+    <h1>Image-to-Text with Groq</h1>
+    <label for="apiKey">Enter your Groq <a href="https://console.groq.com/keys" target="_blank">API Key</a>:</label>
+    <input type="password" id="apiKey" placeholder="Your Groq API Key..." />
+
+    <!-- <label for="prompt">Enter your prompt:</label>
+    <input type="text" id="prompt" placeholder="Describe the contents of this image." value="Describe the contents of this image." /> -->
+
+    <label for="prompt">Prompt:</label>
+    <textarea id="prompt" rows="4" cols="50" placeholder="Describe the contents of this image." value="Describe the contents of this image."></textarea>
+    
+    <label for="tokens">Max Response Tokens:</label>
+    <input type="text" id="tokens" placeholder="600" value="600" />
+
+    <label for="model">Select model:</label>
+    <select id="model">
+        <option value="llama-3.2-11b-vision-preview" selected>llama-3.2-11b-vision-preview</option>
+        <option value="llama-3.2-90b-vision-preview"         >llama-3.2-90b-vision-preview</option>
+    </select>
+
+    <label for="imageInput">Upload image(s) (or paste from copy buffer):</label>
+    <input type="file" id="imageInput" accept="image/*" multiple />
+
+    <div class="image-container" id="imageContainer"></div>
+
+    <button id="analyze">Process Image-To-Text</button>
+
+    <hr class="sleek-divider">
+
+    <div id="output"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Lib for Markdown - Provides marked.parse() -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script> <!-- Lib for adding Sorting ability to lists -->
+
+    <script>
+        const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+        const apiKeyField = document.getElementById('apiKey');
+        const analyzeButton = document.getElementById('analyze');
+        const imageInput = document.getElementById('imageInput');
+        const imageContainer = document.getElementById('imageContainer');
+        let uploadedImages = [];
+
+        apiKeyField.addEventListener('focus', () => {
+            apiKeyField.type = 'text';
+            apiKeyField.select();
+        });
+
+        apiKeyField.addEventListener('blur', () => {
+            apiKeyField.type = 'password';
+        });
+
+        function openImageInWindow(imageUrl) {
+            const imageWindow = document.createElement('div');
+            imageWindow.onclick = () => { document.body.removeChild(imageWindow); };
+            imageWindow.classList.add('popup-image');
+
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            imageWindow.appendChild(img);
+
+            document.body.appendChild(imageWindow);
+        }
+
+        function toggleJSON(containerId) {
+            const jsonContainer = document.getElementById(containerId);
+            const button = jsonContainer.previousElementSibling;
+            if (jsonContainer.style.display === 'none') {
+                jsonContainer.style.display = 'block';
+                button.innerText = button.innerText.replace('Show', 'Hide');
+            } else {
+                jsonContainer.style.display = 'none';
+                button.innerText = button.innerText.replace('Hide', 'Show');
+            }
+        }
+
+        function text2HTML(text) {
+            return text.replace(/(?:\r\n|\r|\n)/g,'<br>');
+        }
+
+        function addImage(imageUrl, name) {
+            const randomId = Math.random().toString(36)
+            uploadedImages.push({ "id": randomId, src: imageUrl, name: name });
+
+            const imageWrapper = document.createElement('div');
+            imageWrapper.classList.add('image-wrapper');
+            imageWrapper.dataset.id = randomId;
+
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.onclick = () => openImageInWindow(imageUrl);
+            imageWrapper.appendChild(img);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-button');
+            deleteButton.innerText = '×';
+            deleteButton.onclick = () => {
+                uploadedImages = uploadedImages.filter((img) => img.id !== randomId);
+                imageWrapper.remove();
+            }
+
+            imageWrapper.appendChild(deleteButton);
+            imageContainer.appendChild(imageWrapper);
+        }
+
+        imageInput.addEventListener('change', (event) => {
+            const files = Array.from(event.target.files);
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageUrl = e.target.result;
+                    const name = file.name;
+                    addImage(imageUrl,name);
+                }
+                reader.readAsDataURL(file);
+            })
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            document.addEventListener('paste', async (event) => {
+                const items = event.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const imageUrl = e.target.result
+                            addImage(imageUrl);
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            })
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var imageContainer = document.getElementById('imageContainer');
+            var sortable = new Sortable(imageContainer, {
+                animation: 150,
+                onEnd: function (evt) {
+                    // Update the uploadedImages list based on the new order
+                    var newOrder = Array.from(imageContainer.children).map(child => child.dataset.id);
+                    console.log(newOrder); // Check the newOrder
+                    uploadedImages = newOrder.map(id => uploadedImages.find(image => image.id === id)); // Set uploadedImages to the new order
+                }
+            })
+        });
+
+        analyzeButton.addEventListener('click', async () => {
+
+            const apiKey = apiKeyField.value;
+            const prompt = document.getElementById('prompt').value;
+            const model = document.getElementById('model').value;
+            const tokens = document.getElementById('tokens').value;
+            const button = document.getElementById('analyze');
+            const randomId = Math.random().toString(36);
+            let response = null;
+            let data = null;
+
+            if (!tokens.value || tokens.value == "") tokens.value = 600;
+
+            if (!apiKey) {
+                alert("Please enter your API key.");
+                return;
+            }
+
+            if (uploadedImages.length === 0) {
+                alert("Please upload at least one image.");
+                return;
+            }
+
+            button.disabled = true;
+            button.style.cursor = 'wait';
+            button.classList.add('pulsing');
+            button.innerText = 'Processing';
+
+            // Since groq only supports 1 image, this beautiful code has to be commented out.
+            // const messages = [{
+            //     role: "user",
+            //     content: [
+            //         { type: "text", text: prompt },
+            //         ...uploadedImages.map((imageUrl) => ({
+            //             type: "image_url",
+            //             image_url: { url: imageUrl }
+            //         }))
+            //     ]
+            // }];
+
+            const messages = [{
+                role: "user",
+                content: [
+                    { type: "text", text: prompt },
+                    { type: "image_url", image_url: { url: uploadedImages[uploadedImages.length - 1].src } }
+                ]
+            }]
+
+            if (uploadedImages[uploadedImages.length - 1].name != null) {
+                messages[0].content[0].text = messages[0].content[0].text + "\n\n[For context, the filename is: " + uploadedImages[uploadedImages.length - 1].name + "]";
+            }
+
+            const requestData = {
+                model: model,
+                messages: messages,
+                max_tokens: parseInt(tokens),
+                temperature: 0.25
+            };
+
+            try {
+                response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`<br>response.ok: ${response.ok}<br>response.type: ${response.type}<br>response.status: ${response.status}<br>response.statusText: ${response.statusText}<br>response.url: ${response.url}<br>`);
+                }
+
+                data = await response.json();
+                const outputDiv = document.getElementById('output');
+
+                const generationDiv = document.createElement('div');
+                generationDiv.classList.add('generation');
+                generationDiv.innerHTML += `<div class="message"><strong>Model:</strong> ${model}</div>`
+                generationDiv.innerHTML += `<div class="message"><strong>Prompt:</strong><br><br>${prompt}<br></div>`
+                // generationDiv.innerHTML += `<div class="message">JSON Request:<button onclick="toggleJSON('request-${randomId}')">Show JSON</button><div id="request-${randomId}" style="display: none;">${JSON.stringify(requestData, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
+                // generationDiv.innerHTML += `<div class="message">JSON Response:<button onclick="toggleJSON('response-${randomId}')">Show JSON</button><div id="response-${randomId}" style="display: none;">${JSON.stringify(data, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
+                //generationDiv.innerHTML += `<div class="message"><strong>Response:</strong><br>${marked.parse(data.choices[0].message.content.replace(/(?:\r\n|\r|\n)/g, '<br>'))}</div>`
+                generationDiv.innerHTML += `<div class="message"><strong>Response:</strong><br><textarea id="outputResponse" rows="10" cols="75">${data.choices[0].message.content}</textarea></div>`
+                // generationDiv.innerHTML += `<div class="message"><button onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(requestData, null, 2) + "\n```")}</div></div>`
+                // generationDiv.innerHTML += `<div class="message"><button onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(data, null, 2) + "\n```")}</div></div>`
+                generationDiv.innerHTML += `<div class="message"><button class="json-button" onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;"><textarea id="jsonRequest" rows="15" cols="75">${JSON.stringify(requestData, null, 2)}</textarea></div></div>`
+                generationDiv.innerHTML += `<div class="message"><button class="json-button" onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;"><textarea id="jsonResponse" rows="15" cols="75">${JSON.stringify(data, null, 2)}</textarea></div></div>`
+
+
+                let imageUrl = uploadedImages[uploadedImages.length - 1].src;
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.style.maxWidth = '400px';
+                //img.name = uploadedImages[uploadedImages.length - 1].name
+                img.classList.add('message')
+                img.onclick = () => openImageInWindow(imageUrl);
+                generationDiv.appendChild(img);
+                generationDiv.classList.add('pulse-twice');
+                outputDiv.prepend(generationDiv);
+                //outputDiv.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error(error);
+                const outputDivErr = document.getElementById('output');
+                const generationDivErr = document.createElement('div');
+                generationDivErr.classList.add('generation');
+                if (model) generationDivErr.innerHTML                   += `<div class="message"><strong>Model:</strong> ${model}</div>`
+                if (prompt) generationDivErr.innerHTML                  += `<div class="message"><strong>Prompt:</strong><br>${prompt}</div>`
+                // if (requestData && randomId) generationDivErr.innerHTML += `<div class="message">JSON Request:<br><button onclick="toggleJSON('request-${randomId}')">Show JSON</button><div id="request-${randomId}" style="display: none;">${JSON.stringify(requestData, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
+                // if (data != null) generationDivErr.innerHTML            += `<div class="message">JSON Response:<br><button onclick="toggleJSON('response-${randomId}')">Show JSON</button><div id="response-${randomId}" style="display: none;">${JSON.stringify(data, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
+                if (requestData && randomId) generationDivErr.innerHTML += `<div class="message">JSON Request:<button class="json-button" onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(requestData, null, 2) + "\n```")}</div></div>`
+                if (data != null) generationDivErr.innerHTML            += `<div class="message">JSON Response:<button class="json-button" onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(data, null, 2) + "\n```")}</div></div>`
+                generationDivErr.innerHTML                              += `<div class="message">Failed to analyze image.<br><br><strong>response.status: 400</strong> usually means:<br>  - The image was too large<br>  - The image aspect ratio is unsupported. (too tall or too wide)<br>  - Because it doesn't like that specific image.<br>  - Try taking a screenshot of an image if a particular image doesn't work.<br><br><strong>response.status: 401</strong> is "Unauthorized" and usually means the API key is incorrect.<br></div>`;
+                if (error) generationDivErr.innerHTML                   += `<div class="message">${error}<br></div>`
+                let imageUrl = uploadedImages[uploadedImages.length - 1].src;
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.classList.add('message')
+                img.onclick = () => openImageInWindow(imageUrl);
+                generationDivErr.appendChild(img);
+                generationDivErr.classList.add('pulse-twice');
+                outputDivErr.prepend(generationDivErr);
+                //outputDivErr.scrollIntoView({ behavior: 'smooth' });
+            } finally {
+                button.disabled = false;
+                button.style.cursor = 'pointer';
+                button.classList.remove('pulsing');
+                button.innerText = 'Process Image-To-Text';
+            }
+        });
+    </script>
+
+    <script>
+        
+        function loadSaveElement(elementId,key) {
+            document.addEventListener('DOMContentLoaded', () => {
+                const element = document.getElementById(elementId);
+                const elementNewId = elementId + '-Groq-Image-To-Text';
+                const savedValue = localStorage.getItem(elementNewId);
+                if (savedValue)  element[key] = savedValue;
+                element.addEventListener('input', () => { localStorage.setItem(elementNewId, element[key]); });
+            });
+        }
+
+        loadSaveElement('apiKey','value');
+        loadSaveElement('prompt','value');
+        loadSaveElement('tokens','value');
+        loadSaveElement('model','value');
+
+    </script>
+
+</body>
+</html>
