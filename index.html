@@ -195,13 +195,9 @@
             </a>
     </div>
 
-    <!--<h1>Image-to-Text with <a href="https://console.groq.com/docs/vision" target="_blank">Groq</a></h1>-->
     <h1>Image-to-Text with Groq</h1>
     <label for="apiKey">Enter your Groq <a href="https://console.groq.com/keys" target="_blank">API Key</a>:</label>
     <input type="password" id="apiKey" placeholder="Your Groq API Key..." />
-
-    <!-- <label for="prompt">Enter your prompt:</label>
-    <input type="text" id="prompt" placeholder="Describe the contents of this image." value="Describe the contents of this image." /> -->
 
     <label for="prompt">Prompt:</label>
     <textarea id="prompt" rows="4" cols="50" placeholder="Describe the contents of this image." value="Describe the contents of this image."></textarea>
@@ -424,12 +420,7 @@
                 generationDiv.classList.add('generation');
                 generationDiv.innerHTML += `<div class="message"><strong>Model:</strong> ${model}</div>`
                 generationDiv.innerHTML += `<div class="message"><strong>Prompt:</strong><br><br>${prompt}<br></div>`
-                // generationDiv.innerHTML += `<div class="message">JSON Request:<button onclick="toggleJSON('request-${randomId}')">Show JSON</button><div id="request-${randomId}" style="display: none;">${JSON.stringify(requestData, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
-                // generationDiv.innerHTML += `<div class="message">JSON Response:<button onclick="toggleJSON('response-${randomId}')">Show JSON</button><div id="response-${randomId}" style="display: none;">${JSON.stringify(data, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
-                //generationDiv.innerHTML += `<div class="message"><strong>Response:</strong><br>${marked.parse(data.choices[0].message.content.replace(/(?:\r\n|\r|\n)/g, '<br>'))}</div>`
                 generationDiv.innerHTML += `<div class="message"><strong>Response:</strong><br><textarea id="outputResponse" rows="10" cols="75">${data.choices[0].message.content}</textarea></div>`
-                // generationDiv.innerHTML += `<div class="message"><button onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(requestData, null, 2) + "\n```")}</div></div>`
-                // generationDiv.innerHTML += `<div class="message"><button onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(data, null, 2) + "\n```")}</div></div>`
                 generationDiv.innerHTML += `<div class="message"><button class="json-button" onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;"><textarea id="jsonRequest" rows="15" cols="75">${JSON.stringify(requestData, null, 2)}</textarea></div></div>`
                 generationDiv.innerHTML += `<div class="message"><button class="json-button" onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;"><textarea id="jsonResponse" rows="15" cols="75">${JSON.stringify(data, null, 2)}</textarea></div></div>`
 
@@ -453,10 +444,8 @@
                 generationDivErr.classList.add('generation');
                 if (model) generationDivErr.innerHTML                   += `<div class="message"><strong>Model:</strong> ${model}</div>`
                 if (prompt) generationDivErr.innerHTML                  += `<div class="message"><strong>Prompt:</strong><br>${prompt}</div>`
-                // if (requestData && randomId) generationDivErr.innerHTML += `<div class="message">JSON Request:<br><button onclick="toggleJSON('request-${randomId}')">Show JSON</button><div id="request-${randomId}" style="display: none;">${JSON.stringify(requestData, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
-                // if (data != null) generationDivErr.innerHTML            += `<div class="message">JSON Response:<br><button onclick="toggleJSON('response-${randomId}')">Show JSON</button><div id="response-${randomId}" style="display: none;">${JSON.stringify(data, null, 2).replace(/(?:\r\n|\r|\n)/g,'<br>')}</div></div>`
-                if (requestData && randomId) generationDivErr.innerHTML += `<div class="message">JSON Request:<button class="json-button" onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(requestData, null, 2) + "\n```")}</div></div>`
-                if (data != null) generationDivErr.innerHTML            += `<div class="message">JSON Response:<button class="json-button" onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;">${marked.parse("```\n" + JSON.stringify(data, null, 2) + "\n```")}</div></div>`
+                if (requestData && randomId) generationDivErr.innerHTML += `<div class="message"><button class="json-button" onclick="toggleJSON('request-${randomId}')">Show JSON Request</button><div id="request-${randomId}" style="display: none;"><textarea id="jsonRequest" rows="15" cols="75">${JSON.stringify(requestData, null, 2)}</textarea></div></div>`
+                if (data != null) generationDivErr.innerHTML            += `<div class="message"><button class="json-button" onclick="toggleJSON('response-${randomId}')">Show JSON Response</button><div id="response-${randomId}" style="display: none;"><textarea id="jsonResponse" rows="15" cols="75">${JSON.stringify(data, null, 2)}</textarea></div></div>`
                 generationDivErr.innerHTML                              += `<div class="message">Failed to analyze image.<br><br><strong>response.status: 400</strong> usually means:<br>  - The image was too large<br>  - The image aspect ratio is unsupported. (too tall or too wide)<br>  - Because it doesn't like that specific image.<br>  - Try taking a screenshot of an image if a particular image doesn't work.<br><br><strong>response.status: 401</strong> is "Unauthorized" and usually means the API key is incorrect.<br></div>`;
                 if (error) generationDivErr.innerHTML                   += `<div class="message">${error}<br></div>`
                 let imageUrl = uploadedImages[uploadedImages.length - 1].src;
